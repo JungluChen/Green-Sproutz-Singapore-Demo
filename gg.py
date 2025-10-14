@@ -5,7 +5,7 @@ import time
 import json
 from streamlit_js_eval import streamlit_js_eval
 
-st.set_page_config(page_title="YouTube currentTime", page_icon="▶️")
+st.set_page_config(page_title="YouTube currentTime", page_icon="▶️", layout="centered", initial_sidebar_state="collapsed", menu_items=None)
 st.title("🎓 E-Learning Interactive Learning Platform")
 st.write("created by Innovaction XLab")
 # 定義檢查點
