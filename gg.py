@@ -58,7 +58,7 @@ html = f"""
         #time-display {{
             margin-top: 12px;
             padding: 12px 16px;
-            background: #000000;
+            background: #f0f2f6;
             border-radius: 8px;
             font-size: 16px;
         }}
