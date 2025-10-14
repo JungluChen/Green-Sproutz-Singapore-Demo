@@ -48,22 +48,23 @@ def extract_video_id(url: str) -> str:
 video_id = extract_video_id(video_url)
 
 # 包含捕捉按鈕的完整播放器
-html = f"""
+html_content = """
 <!DOCTYPE html>
 <html>
 <head>
     <style>
-        body {{ margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }}
-        #player-container {{ max-width: 720px; margin: 0 auto; }}
-        #time-display {{
+        body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #0e1117; color: #ffffff; }
+        #player-container { max-width: 720px; margin: 0 auto; }
+        #time-display {
             margin-top: 12px;
             padding: 12px 16px;
-            background: #f0f2f6;
+            background: #1a1a1a;
             border-radius: 8px;
             font-size: 16px;
-        }}
-        .time-value {{ font-weight: bold; color: #ff0000; font-size: 18px; }}
-        #capture-btn {{
+            color: #ffffff;
+        }
+        .time-value { font-weight: bold; color: #ff0000; font-size: 18px; }
+        #capture-btn {
             margin-top: 12px;
             padding: 12px 24px;
             background: #0066cc;
@@ -75,24 +76,24 @@ html = f"""
             cursor: pointer;
             width: 100%;
             transition: background 0.3s;
-        }}
-        #capture-btn:hover {{
+        }
+        #capture-btn:hover {
             background: #0052a3;
-        }}
-        #captured {{
+        }
+        #captured {
             margin-top: 12px;
             padding: 16px;
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
+            background: #1a1a1a;
+            border: 1px solid #333333;
             border-radius: 8px;
-            color: #155724;
+            color: #ffffff;
             display: none;
-        }}
-        .captured-time {{
+        }
+        .captured-time {
             font-size: 24px;
             font-weight: bold;
-            color: #155724;
-        }}
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
@@ -123,53 +124,53 @@ html = f"""
         let player = null;
         let currentTime = 0;
 
-        function formatTime(seconds) {{
+        function formatTime(seconds) {
             if (!seconds || seconds < 0) return "00:00";
             const sec = Math.floor(seconds);
             const m = Math.floor(sec / 60);
             const s = sec % 60;
             return m + ":" + String(s).padStart(2, "0");
-        }}
+        }
 
-        function onYouTubeIframeAPIReady() {{
-            player = new YT.Player('player', {{
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
                 height: '405',
                 width: '720',
-                videoId: '{video_id}',
-                playerVars: {{
+                videoId: 'VIDEO_ID_PLACEHOLDER',
+                playerVars: {
                     'rel': 0,
                     'modestbranding': 1
-                }},
-                events: {{
+                },
+                events: {
                     'onReady': onPlayerReady
-                }}
-            }});
-        }}
+                }
+            });
+        }
 
         // 檢查點數據
-        const checkpoints = {json.dumps(checkpoints)};
+        const checkpoints = CHECKPOINTS_PLACEHOLDER;
         let activeCheckpoint = null;
         let lastTriggerTime = 0;
         
-        function checkTimepoints(currentTime) {{
+        function checkTimepoints(currentTime) {
             // 檢查是否達到任何檢查點
-            for (const checkpoint of checkpoints) {{
+            for (const checkpoint of checkpoints) {
                 const atSeconds = checkpoint.at_seconds;
                 
                 // 如果當前時間在檢查點時間的前後 0.5 秒內
                 // 且與上次觸發時間相差超過 2 秒（避免連續多次觸發）
                 const now = Date.now();
-                if (Math.abs(currentTime - atSeconds) < 0.5 && (now - lastTriggerTime > 2000)) {{
+                if (Math.abs(currentTime - atSeconds) < 0.5 && (now - lastTriggerTime > 2000)) {
                     // 設置當前檢查點和觸發時間
                     activeCheckpoint = checkpoint;
                     lastTriggerTime = now;
                     
                     // 發送檢查點事件到父窗口
-                    window.parent.postMessage({{
+                    window.parent.postMessage({
                         type: 'CHECKPOINT_REACHED',
                         checkpoint: checkpoint,
                         currentTime: currentTime
-                    }}, '*');
+                    }, '*');
                     
                     // 儲存到 localStorage 以便 Streamlit 讀取
                     localStorage.setItem('yt_active_checkpoint', JSON.stringify(checkpoint));
@@ -178,21 +179,21 @@ html = f"""
                     showCheckpointQuestion(checkpoint);
                     
                     // 如果正在播放，暫停影片
-                    if (player.getPlayerState() === 1) {{
+                    if (player.getPlayerState() === 1) {
                         player.pauseVideo();
-                    }}
+                    }
                     
                     break;
-                }}
-            }}
-        }}
+                }
+            }
+        }
         
-        function showCheckpointQuestion(checkpoint) {{
+        function showCheckpointQuestion(checkpoint) {
             // 移除舊的問題容器（如果存在）
             let oldContainer = document.getElementById('question-container');
-            if (oldContainer) {{
+            if (oldContainer) {
                 oldContainer.remove();
-            }}
+            }
             
             // 創建新的問題容器
             let questionContainer = document.createElement('div');
@@ -216,11 +217,11 @@ html = f"""
             
             // 設置問題內容
             questionContainer.innerHTML = `
-                <h3 style="margin-top: 0; color: #fff;">${{checkpoint.prompt}}</h3>
+                <h3 style="margin-top: 0; color: #fff;">${checkpoint.prompt}</h3>
                 <div id="choices" style="margin: 20px 0;">
-                    ${{checkpoint.choices.map((choice, index) => `
+                    ${checkpoint.choices.map((choice, index) => `
                         <button 
-                            onclick="answerQuestion('${{choice}}', '${{checkpoint.id}}')"
+                            onclick="answerQuestion('${choice}', '${checkpoint.id}')"
                             style="
                                 margin: 5px;
                                 padding: 10px 15px;
@@ -231,8 +232,8 @@ html = f"""
                                 cursor: pointer;
                                 font-size: 16px;
                             "
-                        >${{choice}}</button>
-                    `).join('')}}
+                        >${choice}</button>
+                    `).join('')}
                 </div>
                 <button 
                     onclick="closeQuestion()"
@@ -249,21 +250,21 @@ html = f"""
             `;
             
             // 確保問題容器可見
-            setTimeout(() => {{
+            setTimeout(() => {
                 const container = document.getElementById('question-container');
-                if (container) {{
+                if (container) {
                     container.style.display = 'block';
-                }}
-            }}, 100);
-        }}
+                }
+            }, 100);
+        }
         
         // 回答問題
-        window.answerQuestion = function(choice, questionId) {{
-            const answer = {{
+        window.answerQuestion = function(choice, questionId) {
+            const answer = {
                 questionId: questionId,
                 choice: choice,
                 timestamp: Date.now()
-            }};
+            };
             
             // 儲存答案
             let answers = JSON.parse(localStorage.getItem('yt_question_answers') || '[]');
@@ -271,56 +272,56 @@ html = f"""
             localStorage.setItem('yt_question_answers', JSON.stringify(answers));
             
             // 發送答案到父窗口
-            window.parent.postMessage({{
+            window.parent.postMessage({
                 type: 'QUESTION_ANSWERED',
                 answer: answer
-            }}, '*');
+            }, '*');
             
             // 關閉問題
             closeQuestion();
             
             // 繼續播放
             player.playVideo();
-        }};
+        };
         
         // 關閉問題
-        window.closeQuestion = function() {{
+        window.closeQuestion = function() {
             const questionContainer = document.getElementById('question-container');
-            if (questionContainer) {{
+            if (questionContainer) {
                 // 完全移除問題容器，而不只是隱藏
                 questionContainer.remove();
-            }}
+            }
             
             // 繼續播放
             player.playVideo();
-        }};
+        };
         
-        function onPlayerReady(event) {{
-            setTimeout(() => {{
+        function onPlayerReady(event) {
+            setTimeout(() => {
                 const duration = player.getDuration();
-                if (duration > 0) {{
+                if (duration > 0) {
                     document.getElementById('duration').textContent = formatTime(duration);
-                }}
-            }}, 500);
+                }
+            }, 500);
             
             // 持續更新時間顯示並檢查檢查點
-            setInterval(() => {{
+            setInterval(() => {
                 if (!player || typeof player.getCurrentTime !== 'function') return;
-                try {{
+                try {
                     const time = player.getCurrentTime();
-                    if (typeof time === 'number' && !isNaN(time) && time >= 0) {{
+                    if (typeof time === 'number' && !isNaN(time) && time >= 0) {
                         currentTime = time;
                         document.getElementById('current').textContent = formatTime(time);
                         
                         // 檢查是否達到任何檢查點
                         checkTimepoints(time);
-                    }}
-                }} catch (e) {{}}
-            }}, 100);
-        }}
+                    }
+                } catch (e) {}
+            }, 100);
+        }
 
-        function captureTime() {{
-            if (currentTime > 0) {{
+        function captureTime() {
+            if (currentTime > 0) {
                 // 顯示已捕捉訊息
                 const capturedDiv = document.getElementById('captured');
                 capturedDiv.style.display = 'block';
@@ -328,27 +329,30 @@ html = f"""
                 document.getElementById('captured-seconds').textContent = currentTime.toFixed(2);
                 
                 // 發送到 parent window
-                window.parent.postMessage({{
+                window.parent.postMessage({
                     type: 'CAPTURE_TIME',
                     time: currentTime,
-                    videoId: '{video_id}'
-                }}, '*');
+                    videoId: 'VIDEO_ID_PLACEHOLDER'
+                }, '*');
                 
                 // 按鈕反饋
                 const btn = document.getElementById('capture-btn');
                 const originalText = btn.textContent;
                 btn.textContent = '✅ 已捕捉！';
                 btn.style.background = '#28a745';
-                setTimeout(() => {{
+                setTimeout(() => {
                     btn.textContent = originalText;
                     btn.style.background = '#0066cc';
-                }}, 1000);
-            }}
-        }}
+                }, 1000);
+            }
+        }
     </script>
 </body>
 </html>
 """
+
+# 替換佔位符
+html = html_content.replace('VIDEO_ID_PLACEHOLDER', video_id).replace('CHECKPOINTS_PLACEHOLDER', json.dumps(checkpoints))
 
 # 渲染播放器
 components.html(html, height=620)
