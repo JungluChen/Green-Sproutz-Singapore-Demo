@@ -1,3 +1,8 @@
 streamlit==1.31.0
 streamlit-js-eval==0.1.5
 streamlit-autorefresh==1.0.1
+sqlite3
+pathlib
+datetime
+json
+re
